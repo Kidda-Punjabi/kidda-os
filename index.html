@@ -9,24 +9,20 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:system-ui,-apple-system,sans-serif;background:#f8f8f7;color:#1a1a1a;}
 
-.os{padding:20px;}
+.os{display:flex;flex-direction:column;min-height:100vh;}
 
 .topbar{
-  display:flex;
-  align-items:center;
-  gap:8px;
+  display:flex;align-items:center;gap:8px;
   padding:12px 16px;
-  border-bottom:1px solid #ddd;
+  border-bottom:1px solid rgba(0,0,0,0.1);
   background:#fff;
+  flex-wrap:wrap;
 }
 
-.topbar-title{
-  font-size:14px;
-  font-weight:600;
-}
+.topbar-title{font-size:13px;font-weight:600;}
 
 .alert-pill{
-  font-size:12px;
+  font-size:11px;
   padding:4px 10px;
   border-radius:20px;
 }
@@ -37,27 +33,54 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f8f8f7;color:#1a
 
 .refresh-btn{
   margin-left:auto;
-  padding:6px 12px;
+  padding:5px 12px;
   border-radius:6px;
   border:1px solid #ccc;
   cursor:pointer;
 }
 
+.tabs{
+  display:flex;
+  border-bottom:1px solid #ddd;
+  background:#fff;
+}
+
+.tab{
+  padding:10px 16px;
+  font-size:13px;
+  border:none;
+  background:none;
+  cursor:pointer;
+}
+
+.tab.active{
+  border-bottom:2px solid black;
+  font-weight:600;
+}
+
+.panel{
+  display:none;
+  padding:16px;
+}
+
+.panel.active{
+  display:block;
+}
+
 .metric-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-  gap:12px;
-  margin-top:20px;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:10px;
 }
 
 .metric-card{
   background:#f0efeb;
-  padding:14px;
+  padding:12px;
   border-radius:8px;
 }
 
 .metric-label{
-  font-size:12px;
+  font-size:11px;
   color:#666;
 }
 
@@ -72,40 +95,49 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f8f8f7;color:#1a
 
 <div class="os">
 
-  <!-- TOPBAR -->
-  <div class="topbar">
-    <span class="topbar-title">Kidda OS</span>
+<!-- TOPBAR -->
+<div class="topbar">
+  <span class="topbar-title">Kidda OS</span>
 
-    <span id="unread-alert" class="alert-pill alert-red">
-      🔴 1 unread messages
-    </span>
+  <span id="unread-alert" class="alert-pill alert-red">
+    🔴 1 unread messages
+  </span>
 
-    <span class="alert-pill alert-amber">
-      ⚠ Bookings <span id="bookings-inline">14</span>/50
-    </span>
+  <span class="alert-pill alert-amber">
+    ⚠ Bookings <span id="bookings-inline">14</span>/50
+  </span>
 
-    <span class="alert-pill alert-green">
-      ✓ Revenue £<span id="revenue-inline">649</span>
-    </span>
+  <span class="alert-pill alert-green">
+    ✓ Revenue £<span id="revenue-inline">649</span>
+  </span>
 
-    <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
-  </div>
+  <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
+</div>
 
-  <!-- METRICS -->
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('acquisition',this)">Acquisition</button>
+  <button class="tab" onclick="switchTab('operations',this)">Operations</button>
+  <button class="tab" onclick="switchTab('delivery',this)">Delivery</button>
+</div>
+
+<!-- ACQUISITION -->
+<div id="panel-acquisition" class="panel active">
+
   <div class="metric-grid">
 
     <div class="metric-card">
-      <div class="metric-label">Meetings booked</div>
+      <div class="metric-label">Bookings</div>
       <div id="bookings-value" class="metric-value">14</div>
     </div>
 
     <div class="metric-card">
-      <div class="metric-label">Revenue (this week)</div>
+      <div class="metric-label">Revenue</div>
       <div id="revenue-value" class="metric-value">£649</div>
     </div>
 
     <div class="metric-card">
-      <div class="metric-label">Unread messages</div>
+      <div class="metric-label">Unread</div>
       <div id="unread-value" class="metric-value">1</div>
     </div>
 
@@ -113,7 +145,48 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f8f8f7;color:#1a
 
 </div>
 
+<!-- OPERATIONS -->
+<div id="panel-operations" class="panel">
+  <div class="metric-grid">
+
+    <div class="metric-card">
+      <div class="metric-label">Unread Messages</div>
+      <div id="ops-unread" class="metric-value">1</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-label">Bookings</div>
+      <div id="ops-bookings" class="metric-value">14</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DELIVERY -->
+<div id="panel-delivery" class="panel">
+  <div class="metric-grid">
+
+    <div class="metric-card">
+      <div class="metric-label">Revenue</div>
+      <div id="del-revenue" class="metric-value">£649</div>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
 <script>
+
+// TAB SWITCH
+function switchTab(id, el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  el.classList.add('active');
+}
+
+// DATA LOADER
 async function loadData() {
   try {
     const res = await fetch('https://kidda-os-backend.vercel.app/api/dashboard');
@@ -122,36 +195,39 @@ async function loadData() {
     console.log('Backend data:', data);
 
     // BOOKINGS
-    const bookingsMain = document.getElementById('bookings-value');
-    const bookingsInline = document.getElementById('bookings-inline');
-    if (bookingsMain) bookingsMain.textContent = data.bookings;
-    if (bookingsInline) bookingsInline.textContent = data.bookings;
+    setText('bookings-value', data.bookings);
+    setText('bookings-inline', data.bookings);
+    setText('ops-bookings', data.bookings);
 
     // REVENUE
-    const revenueMain = document.getElementById('revenue-value');
-    const revenueInline = document.getElementById('revenue-inline');
-    if (revenueMain) revenueMain.textContent = '£' + data.revenue;
-    if (revenueInline) revenueInline.textContent = data.revenue;
+    setText('revenue-value', '£' + data.revenue);
+    setText('revenue-inline', data.revenue);
+    setText('del-revenue', '£' + data.revenue);
 
     // UNREAD
-    const unreadMain = document.getElementById('unread-value');
-    const unreadAlert = document.getElementById('unread-alert');
+    setText('unread-value', data.unread);
+    setText('ops-unread', data.unread);
 
-    if (unreadMain) unreadMain.textContent = data.unread;
-    if (unreadAlert) {
-      unreadAlert.textContent = `🔴 ${data.unread} unread messages`;
+    const alert = document.getElementById('unread-alert');
+    if(alert){
+      alert.textContent = `🔴 ${data.unread} unread messages`;
     }
 
-  } catch (err) {
-    console.error('Error loading data:', err);
+  } catch(err){
+    console.error('Error:', err);
   }
 }
 
-// Run immediately
-loadData();
+// SAFE SETTER
+function setText(id, value){
+  const el = document.getElementById(id);
+  if(el) el.textContent = value;
+}
 
-// Auto refresh every 30s
+// INIT
+loadData();
 setInterval(loadData, 30000);
+
 </script>
 
 </body>
