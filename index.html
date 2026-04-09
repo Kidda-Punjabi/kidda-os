@@ -6,50 +6,110 @@
 <title>Kidda Analytics OS</title>
 
 <style>
-/* (keeping your styles unchanged for brevity) */
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:system-ui,-apple-system,sans-serif;background:#f8f8f7;color:#1a1a1a;}
+
+.topbar{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 16px;
+  border-bottom:1px solid #eee;
+  background:#fff;
+  flex-wrap:wrap;
+}
+
+.topbar-title{
+  font-size:14px;
+  font-weight:600;
+}
+
+.alert-pill{
+  font-size:12px;
+  padding:4px 10px;
+  border-radius:20px;
+}
+
+.alert-red{background:#fee2e2;color:#991b1b;}
+.alert-amber{background:#fef3c7;color:#92400e;}
+.alert-green{background:#dcfce7;color:#166534;}
+
+.refresh-btn{
+  margin-left:auto;
+  padding:4px 10px;
+  cursor:pointer;
+}
+
+.metric-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  padding:16px;
+}
+
+.metric-card{
+  background:#f0efeb;
+  padding:12px;
+  border-radius:8px;
+}
+
+.metric-label{
+  font-size:12px;
+  color:#666;
+}
+
+.metric-value{
+  font-size:22px;
+  font-weight:600;
+}
 </style>
 </head>
 
 <body>
+
 <div class="os">
 
-<!-- 🔴 TOPBAR FIXED -->
-<div class="topbar">
-  <span class="topbar-title">Kidda OS</span>
+  <!-- 🔴 TOPBAR -->
+  <div class="topbar">
+    <span class="topbar-title">Kidda OS</span>
 
-  <!-- ✅ FIXED ID -->
-  <span id="unread-alert" class="alert-red alert-pill">🔴 1 unread messages</span>
+    <!-- ✅ UNREAD -->
+    <span id="unread-alert" class="alert-red alert-pill">
+      🔴 1 unread messages
+    </span>
 
-  <span class="alert-amber alert-pill">⚠ Bookings 14/50 — 28% of target</span>
-  <span class="alert-green alert-pill">✓ 6 leads · CPL £12.22 · CPC £0.37</span>
-  <span class="alert-green alert-pill">✓ Stripe live · £649 this week</span>
+    <span class="alert-amber alert-pill">
+      ⚠ Bookings 14/50 — 28% of target
+    </span>
 
-  <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
-</div>
+    <span class="alert-green alert-pill">
+      ✓ Stripe live
+    </span>
 
-<!-- ACQUISITION METRICS (ONLY showing relevant ones updated) -->
-<div class="metric-grid">
-
-  <!-- ✅ BOOKINGS -->
-  <div class="metric-card">
-    <div class="metric-label">Meetings booked</div>
-    <div id="bookings-value" class="metric-value">14</div>
+    <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
   </div>
 
-  <!-- ✅ REVENUE -->
-  <div class="metric-card">
-    <div class="metric-label">This week</div>
-    <div id="revenue-value" class="metric-value">£649</div>
+  <!-- 📊 METRICS -->
+  <div class="metric-grid">
+
+    <!-- BOOKINGS -->
+    <div class="metric-card">
+      <div class="metric-label">Meetings booked</div>
+      <div id="bookings-value" class="metric-value">14</div>
+    </div>
+
+    <!-- REVENUE -->
+    <div class="metric-card">
+      <div class="metric-label">This week</div>
+      <div id="revenue-value" class="metric-value">£649</div>
+    </div>
+
   </div>
 
 </div>
-
-</div>
-
 
 <script>
+
 async function loadData() {
   try {
     const res = await fetch('https://kidda-os-backend.vercel.app/api/dashboard');
@@ -57,20 +117,27 @@ async function loadData() {
 
     console.log('Backend data:', data);
 
-    document.getElementById('bookings-value').textContent = data.bookings;
-    document.getElementById('revenue-value').textContent = '£' + data.revenue;
-    document.getElementById('unread-alert').textContent = `🔴 ${data.unread} unread messages`;
+    // ✅ Update UI safely
+    const bookingsEl = document.getElementById('bookings-value');
+    const revenueEl = document.getElementById('revenue-value');
+    const unreadEl = document.getElementById('unread-alert');
+
+    if (bookingsEl) bookingsEl.textContent = data.bookings;
+    if (revenueEl) revenueEl.textContent = '£' + data.revenue;
+    if (unreadEl) unreadEl.textContent = `🔴 ${data.unread} unread messages`;
 
   } catch (err) {
     console.error('Error loading data:', err);
   }
 }
 
+// 🚀 Run on load
 loadData();
-</script>
 
-</body>
-</html>
+// 🔁 Auto refresh every 30 seconds
+setInterval(loadData, 30000);
+
+</script>
 
 </body>
 </html>
