@@ -48,10 +48,8 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f8f8f7;color:#1a
 
 </div>
 
+
 <script>
-/* ------------------------------
-   🔥 LOAD DATA FROM BACKEND
------------------------------- */
 async function loadData() {
   try {
     const res = await fetch('https://kidda-os-backend.vercel.app/api/dashboard');
@@ -59,45 +57,20 @@ async function loadData() {
 
     console.log('Backend data:', data);
 
-    updateMetric('bookings', data.bookings);
-    updateMetric('revenue', data.revenue);
-    updateMetric('unread', data.unread);
+    document.getElementById('bookings-value').textContent = data.bookings;
+    document.getElementById('revenue-value').textContent = '£' + data.revenue;
+    document.getElementById('unread-alert').textContent = `🔴 ${data.unread} unread messages`;
 
   } catch (err) {
     console.error('Error loading data:', err);
   }
 }
 
-/* ------------------------------
-   🔥 UPDATE UI (FIXED VERSION)
------------------------------- */
-function updateMetric(type, value) {
-
-  if (type === 'bookings') {
-    const el = document.getElementById('bookings-value');
-    if (el) el.textContent = value;
-  }
-
-  if (type === 'revenue') {
-    const el = document.getElementById('revenue-value');
-    if (el) el.textContent = '£' + value;
-  }
-
-  if (type === 'unread') {
-    const el = document.getElementById('unread-alert');
-    if (el) el.textContent = `🔴 ${value} unread messages`;
-  }
-}
-
-/* ------------------------------
-   🔥 AUTO LOAD + REFRESH
------------------------------- */
 loadData();
-
-// OPTIONAL: auto refresh every 30s
-setInterval(loadData, 30000);
-
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
