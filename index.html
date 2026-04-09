@@ -482,6 +482,8 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f8f8f7;color:#1a
 <div class="footer-note" id="footer-ts">Kidda Analytics OS · Sources: Notion · Gmail · GCal · Fathom · Coupler.io (Meta + GHL) · Stripe</div>
 </div>
 
+
+
 <script>
 function switchTab(id, el) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -489,6 +491,7 @@ function switchTab(id, el) {
   document.getElementById('panel-' + id).classList.add('active');
   el.classList.add('active');
 }
+
 function toggleSrc(header) {
   const body = header.nextElementSibling;
   const chev = header.querySelector('div:last-child');
@@ -497,46 +500,69 @@ function toggleSrc(header) {
   if (chev) chev.style.transform = isOpen ? '' : 'rotate(90deg)';
 }
 
-// ── Actual data pull timestamps (set at rebuild time) ──────────────────────
+// 🔥 NEW: FETCH DATA FROM YOUR BACKEND
+async function loadData() {
+  try {
+    const res = await fetch('https://kidda-os-backend.vercel.app/api/dashboard');
+    const data = await res.json();
+
+    console.log('Backend data:', data);
+
+    // 🧠 Update UI dynamically
+    updateMetric('bookings', data.bookings);
+    updateMetric('revenue', '£' + data.revenue);
+    updateMetric('unread', data.unread);
+
+  } catch (err) {
+    console.error('Error loading data:', err);
+  }
+}
+
+// Helper to update values
+function updateMetric(type, value) {
+  if (type === 'bookings') {
+    document.querySelectorAll('.metric-value')[0].textContent = value;
+  }
+  if (type === 'revenue') {
+    document.querySelectorAll('.metric-value')[6].textContent = value;
+  }
+  if (type === 'unread') {
+    document.querySelector('.alert-red').textContent = `🔴 ${value} unread messages`;
+  }
+}
+
+// Run on load
+loadData();
+
+// ── existing clock logic stays ──
 const TIMESTAMPS = {
-  // Coupler Meta — last run shown in Coupler dashboard
-  coupler_meta:         new Date('2026-04-08T22:09:15'),
-  // Coupler GHL Conversations + Contacts — last run
-  coupler_ghl:          new Date('2026-04-08T22:20:31'),
-  // Gmail bookings + Fathom sales calls
-  gmail_bookings:       new Date('2026-04-08T13:55:00'),
-  // Fathom tutor reviews
-  fathom_reviews:       new Date('2026-04-08T10:37:30'),
-  // Fathom sales calls (Sonia)
-  fathom_sales:         new Date('2026-04-07T14:52:00'),
-  // Notion WDR written live
-  notion_wdr:           new Date('2026-04-08T13:30:00'),
-  // Stripe pulled this rebuild
-  stripe:               new Date('2026-04-08T22:45:00'),
-  // GCal Arsh + Jasleen pulled this rebuild
-  gcal_tutors:          new Date('2026-04-08T22:45:00'),
-  // Notion Package DB — active cohorts fetched this rebuild
-  notion_packages:      new Date('2026-04-08T22:45:00'),
-  // QuickBooks — connected, no transactions yet
-  quickbooks:           new Date('2026-04-09T00:00:00'),
+  coupler_meta: new Date('2026-04-08T22:09:15'),
+  coupler_ghl: new Date('2026-04-08T22:20:31'),
+  gmail_bookings: new Date('2026-04-08T13:55:00'),
+  fathom_reviews: new Date('2026-04-08T10:37:30'),
+  fathom_sales: new Date('2026-04-07T14:52:00'),
+  notion_wdr: new Date('2026-04-08T13:30:00'),
+  stripe: new Date('2026-04-08T22:45:00'),
+  gcal_tutors: new Date('2026-04-08T22:45:00'),
+  notion_packages: new Date('2026-04-08T22:45:00'),
+  quickbooks: new Date('2026-04-09T00:00:00'),
 };
 
-// Map each row's data-ts attribute to a TIMESTAMPS key
 const TS_MAP = {
-  'coupler_meta':     'coupler_meta',
-  'coupler_ghl':      'coupler_ghl',
-  'gmail':            'gmail_bookings',
-  'fathom_reviews':   'fathom_reviews',
-  'fathom_sales':     'fathom_sales',
-  'notion_wdr':       'notion_wdr',
-  'stripe':           'stripe',
-  'gcal':             'gcal_tutors',
-  'notion_packages':  'notion_packages',
+  'coupler_meta': 'coupler_meta',
+  'coupler_ghl': 'coupler_ghl',
+  'gmail': 'gmail_bookings',
+  'fathom_reviews': 'fathom_reviews',
+  'fathom_sales': 'fathom_sales',
+  'notion_wdr': 'notion_wdr',
+  'stripe': 'stripe',
+  'gcal': 'gcal_tutors',
+  'notion_packages': 'notion_packages',
 };
 
 function timeAgo(date) {
   const secs = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (secs < 60)   return `${secs}s ago`;
+  if (secs < 60) return `${secs}s ago`;
   if (secs < 3600) return `${Math.floor(secs/60)}m ago`;
   if (secs < 86400) return `${Math.floor(secs/3600)}h ago`;
   return `${Math.floor(secs/86400)}d ago`;
@@ -550,7 +576,6 @@ function fmtDate(date) {
   return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]} · ${h}:${m}`;
 }
 
-// Live clock for footer and backend header
 function updateClock() {
   const now = new Date();
   const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -558,15 +583,12 @@ function updateClock() {
   const h = String(now.getHours()).padStart(2,'0');
   const m = String(now.getMinutes()).padStart(2,'0');
   const s = String(now.getSeconds()).padStart(2,'0');
+
   const timeStr = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()} · ${h}:${m}:${s}`;
 
-  const footer = document.getElementById('footer-ts');
-  if (footer) footer.textContent = `Kidda Analytics OS · ${timeStr} · Notion · Gmail · GCal · Fathom · Coupler.io · Stripe · QuickBooks (Kidda Ltd)`;
+  document.getElementById('footer-ts').textContent =
+    `Kidda Analytics OS · ${timeStr}`;
 
-  const beNote = document.getElementById('be-rebuilt');
-  if (beNote) beNote.textContent = timeStr;
-
-  // Update all "Last updated" cells in the backend table
   document.querySelectorAll('[data-ts]').forEach(el => {
     const key = el.getAttribute('data-ts');
     const ts = TIMESTAMPS[TS_MAP[key] || key];
